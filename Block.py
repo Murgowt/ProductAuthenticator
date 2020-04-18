@@ -3,6 +3,8 @@ import datetime
 import random
 import hashlib
 import pickle
+#import qrcodes
+
 
 #BlockChain Class Defination
 class BlockChain:
@@ -11,7 +13,7 @@ class BlockChain:
 		#But the code works for any large number of production rate too
 		self.Chain=[]
 		self.production_rate=20
-		
+		self.GenesisBlock()
 		
 
 	def GenesisBlock(self):
@@ -19,16 +21,16 @@ class BlockChain:
 					"previous_hash":None,
 					"timestamp":str(datetime.date.today()),
 					"merkle_root":None,
-					"index":1,
 					"items":[],
 					"nonce":None,
 					"no_of_items":0,
 					"nonce_increment":1,
 					"block_hash":None,
+					"index":1,
 				}
-		BC.AddItems()
-		BC.MerkleRoot()
-		BC.BlockHash()
+		self.AddItems()
+		self.MerkleRoot()
+		self.BlockHash()
 		self.Chain.append(self.block)
 
 	def CreateBlock(self):
@@ -36,12 +38,12 @@ class BlockChain:
 					"previous_hash":self.block["block_hash"],
 					"timestamp":str(datetime.date.today()),
 					"merkle_root":None,
-					"index":self.block["index"]+1,
 					"items":[],
 					"nonce":None,
 					"no_of_items":0,
 					"nonce_increment":1,
 					"block_hash":None,
+					"index":self.block["index"]+1,
 				}
 		self.block=block
 		self.Chain.append(self.block)
@@ -100,11 +102,36 @@ class BlockChain:
 		hash.update(str(self.block["nonce"]).encode("utf-8"))
 		self.block["block_hash"]=hash.hexdigest()
 
-		print(self.block["block_hash"])
+		#print(self.block["block_hash"])
+
+	def VerifyItem(self,BC,data):
+		temp=BC.block
+		l=len(BC.Chain)-1
+		while(temp['index']>1):
+
+			if(temp['merkle_root']==data['merkle_root']):
+				for item in temp['items']:
+					if(item['id']==data['id']):
+						return(True)
+				return(False)
+			else:
+				l-=1
+				if(temp['previous_hash']==BC.Chain[l]['block_hash']):
+					temp=BC.Chain[l]
+				else:
+					return False
+		for item in BC.Chain[0]['items']:
+					if(item['id']==data['id']):
+						return(True)
+		return(False) 
 
 
-
-
-
-
-	
+#BC=BlockChain()
+#today=str(datetime.date.today())
+#for i in BC.block["items"]:
+#			data='{{ "merkle_root":"{}","id":"{}"}}'.format(BC.block["merkle_root"],i["id"])
+#			qrcodes.GenerateQRCode(str(data),today,i["nonce"])
+#with open('data.txt', 'wb') as filehandle:
+#	pickle.dump(BC.Chain, filehandle)
+#filehandle.close()
+#print(BC.Chain)
